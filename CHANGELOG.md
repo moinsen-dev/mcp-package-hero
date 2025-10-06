@@ -109,25 +109,164 @@ First production-ready release of MCP Package Hero - a focused, reliable MCP ser
 
 ---
 
+## [1.1.0] - 2025-10-06
+
+### 🎉 Major Feature Release: Package Quality Rating System
+
+This release adds comprehensive package quality analysis capabilities to MCP Package Hero.
+
+### ✨ Features
+
+#### New MCP Tool: `rate_package`
+- **Comprehensive Package Rating**: Multi-dimensional quality analysis for Python, JavaScript, and Dart packages
+  - Overall score (0-100) with letter grades (A+ to F)
+  - Three scoring dimensions with configurable weights:
+    - 🔧 Maintenance Health (35%): Release frequency, issue resolution, PR activity
+    - 📊 Popularity (25%): Downloads, GitHub stars, community adoption
+    - ✨ Quality Metrics (40%): Documentation, license, test indicators
+
+#### Rating Components
+- **Maintenance Score**:
+  - Days since last release
+  - Open/closed issue ratio (30-day window)
+  - Open/merged PR ratio (30-day window)
+- **Popularity Score**:
+  - Monthly download counts
+  - GitHub stars (logarithmic scale)
+  - Dependent packages count
+- **Quality Score**:
+  - Documentation presence and quality
+  - License detection
+  - Test suite indicators
+
+#### Ecosystem Integration
+- **Python (PyPI)**: Custom scoring + GitHub metrics + pypistats.org downloads
+- **JavaScript (npm)**: Blended scoring with npms.io quality/popularity/maintenance scores
+- **Dart (pub.dev)**: Integration with native pub points and popularity scores
+
+#### Insights & Red Flags
+- **Actionable Insights**: Automatically generated positive highlights
+  - "Recently updated (within last 30 days)"
+  - "Highly popular with 100K+ monthly downloads"
+  - "High quality package with good documentation and license"
+- **Red Flags**: Warning signs for package quality issues
+  - "Not updated in over a year"
+  - "No license found"
+  - "Low issue resolution rate"
+
+### 🏗️ New Components
+
+#### Core Modules
+- `github_client.py`: GitHub API v3 client for repository metrics
+  - Repository stats (stars, forks, watchers, issues)
+  - Issue and PR statistics (30-day windows)
+  - License detection
+  - Last update tracking
+
+- `rating_calculator.py`: Scoring algorithms and utilities
+  - Maintenance score calculation
+  - Popularity score calculation (logarithmic scaling)
+  - Quality score calculation
+  - Letter grade conversion
+  - Insights and red flags generation
+
+#### Rater Implementations
+- `raters/python_rater.py`: Python package rating with PyPI + GitHub + pypistats
+- `raters/javascript_rater.py`: JavaScript rating with npm + npms.io + GitHub
+- `raters/dart_rater.py`: Dart rating with pub.dev native scores + GitHub
+
+#### Data Models
+- `LetterGrade` enum: A+, A, A-, B+, B, B-, C+, C, C-, D, F
+- `MaintenanceScore`: Complete breakdown of maintenance metrics
+- `PopularityScore`: Download and star metrics with sub-scores
+- `QualityScore`: Documentation, license, and test indicators
+- `PackageRating`: Comprehensive rating response with all components
+
+### 🧪 Testing
+
+#### New Test Suites
+- `tests/test_rating_calculator.py`: 25 unit tests for scoring algorithms
+  - Maintenance score edge cases
+  - Popularity logarithmic scaling
+  - Quality score combinations
+  - Letter grade boundaries
+  - Insights and red flags generation
+
+- `tests/test_raters.py`: 15 integration tests for package raters
+  - Real-world package rating (requests, react, http, flutter_bloc)
+  - Error handling (nonexistent packages)
+  - Ecosystem-specific score integration
+  - Cross-ecosystem comparison
+
+#### Test Results
+- **Total Tests**: 48 (up from 8)
+- **Status**: 48/48 passing ✅
+- **Coverage**: Comprehensive coverage for all rating features
+
+### 🔧 Changed
+
+- Updated `server.py`:
+  - Added `rate_package` tool
+  - Updated version to 1.1.0
+  - Enhanced MCP server instructions
+
+- Updated `models.py`:
+  - Added rating-related Pydantic models
+  - All models use Pydantic V2 ConfigDict
+  - Full type safety with field validation
+
+### 📚 Documentation
+
+- **README.md**:
+  - Added Tool 3 documentation (rate_package)
+  - Updated features section with quality rating capabilities
+  - Added comprehensive example response
+  - Updated test results (48 tests)
+  - Updated project structure diagram
+  - Updated roadmap with v1.1.0 completion
+
+- **CHANGELOG.md**: This comprehensive release documentation
+
+### 🎯 Design Decisions
+
+- **Weighted Scoring**: Careful balance of maintenance (35%), quality (40%), and popularity (25%)
+- **Logarithmic Scaling**: Downloads and stars use log scale to handle massive ranges (10 to 100M+)
+- **Ecosystem Blending**: Native scores (pub points, npms.io) are blended with our calculations for better accuracy
+- **Graceful Degradation**: Missing data (e.g., GitHub rate limits) doesn't crash - uses neutral scores
+- **30-Day Windows**: Issue/PR statistics use rolling 30-day windows for recency
+
+### 📦 Dependencies
+
+No new dependencies added - uses existing httpx for all HTTP operations.
+
+### 🐛 Fixed
+
+- Fixed `.git` suffix removal in npm repository URLs (was truncating package names ending in 'git')
+- Fixed float-to-int conversion for npms.io download counts
+
+### 📝 Known Limitations
+
+- GitHub API rate limiting (60 requests/hour unauthenticated)
+  - Can be improved with GITHUB_TOKEN environment variable (5000 requests/hour)
+- pypistats.org sometimes returns null for newer packages
+- pub.dev doesn't expose download counts via API
+- Test detection is heuristic-based (may have false negatives)
+
+---
+
 ## [Unreleased]
 
-### Planned for v1.1
+### Planned for v1.2
+- [ ] Additional ecosystems: Rust (crates.io), Go (pkg.go.dev), Swift (SwiftPM)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries (not just latest)
-- [ ] Package search/fuzzy matching
-- [ ] Retry logic with exponential backoff
-- [ ] Connection pooling for httpx clients
-
-### Planned for v1.2
-- [ ] Additional ecosystems: Rust (crates.io), Go (pkg.go.dev), Ruby (rubygems.org)
-- [ ] Performance metrics and monitoring
-- [ ] Rate limiting protection
+- [ ] GitHub token configuration for higher rate limits
 
 ### Planned for v2.0
 - [ ] Dependency tree analysis
 - [ ] Version compatibility checking
 - [ ] Security vulnerability detection
-- [ ] Private registry support
+- [ ] Historical rating trends
 
 ---
 

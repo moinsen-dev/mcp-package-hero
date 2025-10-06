@@ -7,21 +7,28 @@ from fastmcp import FastMCP
 from .models import (
     BatchPackageResponse,
     Ecosystem,
+    PackageRating,
     PackageVersion,
 )
+from .raters import DartPackageRater, JavaScriptPackageRater, PythonPackageRater
 from .registries import NpmRegistry, PubDevRegistry, PyPIRegistry
 
 # Initialize FastMCP server
 mcp = FastMCP(
     name="Package Hero",
-    instructions="Get the latest package versions from PyPI, npm, and pub.dev",
-    version="1.0.0",
+    instructions="Get the latest package versions and comprehensive quality ratings from PyPI, npm, and pub.dev",
+    version="1.1.0",
 )
 
 # Initialize registry clients
 pypi = PyPIRegistry()
 npm = NpmRegistry()
 pubdev = PubDevRegistry()
+
+# Initialize rater clients
+python_rater = PythonPackageRater()
+javascript_rater = JavaScriptPackageRater()
+dart_rater = DartPackageRater()
 
 
 def get_registry(ecosystem: str):
@@ -32,6 +39,17 @@ def get_registry(ecosystem: str):
         return npm
     if ecosystem == Ecosystem.DART.value:
         return pubdev
+    raise ValueError(f"Unsupported ecosystem: {ecosystem}")
+
+
+def get_rater(ecosystem: str):
+    """Get the appropriate rater client for an ecosystem."""
+    if ecosystem == Ecosystem.PYTHON.value:
+        return python_rater
+    if ecosystem == Ecosystem.JAVASCRIPT.value:
+        return javascript_rater
+    if ecosystem == Ecosystem.DART.value:
+        return dart_rater
     raise ValueError(f"Unsupported ecosystem: {ecosystem}")
 
 
@@ -132,6 +150,48 @@ async def get_latest_versions_batch(
             )
 
     return BatchPackageResponse(results=results).model_dump(mode="json")
+
+
+@mcp.tool()
+async def rate_package(
+    package_name: str,
+    ecosystem: Literal["python", "javascript", "dart"],
+) -> dict[str, Any]:
+    """
+    Get a comprehensive quality rating for a package.
+
+    This tool analyzes multiple dimensions of package quality including:
+    - Maintenance health (release frequency, issue resolution, PR activity)
+    - Popularity and adoption (downloads, stars, dependents)
+    - Quality metrics (documentation, license, tests)
+
+    Args:
+        package_name: The name of the package (e.g., "requests", "react", "http")
+        ecosystem: The package ecosystem - one of: "python", "javascript", or "dart"
+
+    Returns:
+        Dictionary with comprehensive package rating including:
+        - overall_score: Overall rating score (0-100)
+        - letter_grade: Letter grade (A+ to F)
+        - maintenance: Maintenance health score and components
+        - popularity: Popularity score and metrics
+        - quality: Quality score and indicators
+        - repository_url: GitHub repository URL if available
+        - license: License type
+        - description: Package description
+        - insights: Key positive insights about the package
+        - red_flags: Warning signs or concerns
+        - status: "success", "not_found", or "error"
+
+    Examples:
+        rate_package("requests", "python")
+        rate_package("react", "javascript")
+        rate_package("http", "dart")
+
+    """
+    rater = get_rater(ecosystem)
+    result = await rater.rate_package(package_name)
+    return result.model_dump(mode="json")  # type: ignore[no-any-return]
 
 
 if __name__ == "__main__":

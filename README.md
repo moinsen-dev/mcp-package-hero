@@ -7,25 +7,39 @@
 [![Coverage](https://img.shields.io/badge/coverage-81%25-yellowgreen.svg)](https://github.com/moinsen-dev/mcp-package-hero)
 [![Type Check](https://img.shields.io/badge/mypy-passing-blue.svg)](https://github.com/moinsen-dev/mcp-package-hero)
 
-> A focused, reliable Model Context Protocol (MCP) server for checking the latest package versions across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev).
+> A comprehensive Model Context Protocol (MCP) server for checking package versions and rating package quality across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev).
 
 ## 🎯 Purpose
 
-MCP Package Hero answers one question exceptionally well: **"What is the current latest version of this package?"**
+MCP Package Hero helps you make informed decisions about packages by providing:
+- **Version Information**: Get the latest stable version of any package
+- **Quality Ratings**: Comprehensive quality analysis across multiple dimensions
 
-Unlike tools that try to do everything, Package Hero focuses on doing three things perfectly:
-- ✅ Check Python packages on PyPI
-- ✅ Check JavaScript/TypeScript packages on npm
-- ✅ Check Dart packages on pub.dev
+Package Hero focuses on three major ecosystems:
+- ✅ Python packages on PyPI
+- ✅ JavaScript/TypeScript packages on npm
+- ✅ Dart/Flutter packages on pub.dev
 
 ## 🚀 Features
 
-- **Simple API**: Just two tools - get one version or batch check multiple packages
+### Version Checking
+- **Simple API**: Get latest version for one or multiple packages
 - **Fast**: Sub-second response times with async operations
-- **Reliable**: Comprehensive error handling and clear status indicators
+- **Batch Support**: Check up to 10 packages at once
+
+### Quality Rating (v1.1.0+)
+- **Comprehensive Analysis**: Multi-dimensional package quality scoring
+  - 🔧 **Maintenance Health** (35%): Release frequency, issue resolution, PR activity
+  - 📊 **Popularity** (25%): Downloads, GitHub stars, community adoption
+  - ✨ **Quality Metrics** (40%): Documentation, license, tests
+- **Letter Grades**: A+ to F rating system for quick assessment
+- **Actionable Insights**: Key strengths and red flags for each package
+- **Ecosystem Integration**: Leverages native scores (pub.dev pub points, npms.io scores)
+
+### Technical Excellence
 - **LLM-Friendly**: Designed specifically for AI assistants and agents
 - **Type-Safe**: Full type hints, Pydantic validation, and mypy compliance
-- **Well-Tested**: 81% code coverage with comprehensive test suite
+- **Well-Tested**: 48 tests, comprehensive coverage for all features
 - **Production-Ready**: Modern Python best practices, timezone-aware, Pydantic V2
 
 ## 📦 Installation
@@ -61,8 +75,27 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cline, etc.):
 
 ### Claude Desktop
 
+#### Option 1: Run directly from GitHub (Recommended)
+
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or
 `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "package-hero": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/moinsen-dev/mcp-package-hero.git",
+        "mcp-package-hero"
+      ]
+    }
+  }
+}
+```
+
+#### Option 2: Run from local directory
 
 ```json
 {
@@ -83,6 +116,25 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 ### Cline VSCode Extension
 
 Edit `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`:
+
+#### Option 1: Run directly from GitHub (Recommended)
+
+```json
+{
+  "mcpServers": {
+    "package-hero": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/moinsen-dev/mcp-package-hero.git",
+        "mcp-package-hero"
+      ]
+    }
+  }
+}
+```
+
+#### Option 2: Run from local directory
 
 ```json
 {
@@ -167,6 +219,67 @@ Check multiple packages at once (max 10):
 }
 ```
 
+### Tool 3: Rate Package Quality (v1.1.0+)
+
+Get comprehensive quality rating for a package:
+
+```python
+# Example queries:
+"Rate the quality of the requests package"
+"How good is the react package?"
+"Give me a quality assessment of flutter_bloc"
+```
+
+**Tool Name**: `rate_package`
+
+**Parameters**:
+- `package_name` (string): Name of the package
+- `ecosystem` (string): One of "python", "javascript", or "dart"
+
+**Example Response**:
+```json
+{
+  "package_name": "requests",
+  "ecosystem": "python",
+  "overall_score": 86.6,
+  "letter_grade": "A-",
+  "maintenance": {
+    "score": 78.8,
+    "last_release_days": 48,
+    "release_frequency_score": 80.0,
+    "issue_resolution_score": 100.0,
+    "pr_merge_score": 44.2
+  },
+  "popularity": {
+    "score": 100.0,
+    "downloads": 855587647,
+    "stars": 53340,
+    "downloads_score": 100.0,
+    "stars_score": 100.0
+  },
+  "quality": {
+    "score": 85.0,
+    "has_documentation": true,
+    "has_license": true,
+    "has_tests": null,
+    "documentation_score": 100.0,
+    "license_score": 100.0,
+    "test_score": 50.0
+  },
+  "repository_url": "https://github.com/psf/requests",
+  "license": "Apache-2.0",
+  "description": "Python HTTP for Humans.",
+  "insights": [
+    "Strong issue resolution track record",
+    "Highly popular with 100K+ monthly downloads",
+    "Well-starred project (1000+ stars)",
+    "High quality package with good documentation and license"
+  ],
+  "red_flags": [],
+  "status": "success"
+}
+```
+
 ## 🧪 Testing
 
 Run the test suite:
@@ -186,8 +299,8 @@ uv run pytest tests/test_registries/test_pypi.py
 ```
 
 ### Test Results
-- ✅ 8/8 tests passing
-- ✅ 81% code coverage
+- ✅ 48/48 tests passing
+- ✅ Comprehensive coverage for version checking and rating features
 - ✅ All three ecosystems validated with live API calls
 
 ## 🏗️ Development
@@ -198,13 +311,19 @@ uv run pytest tests/test_registries/test_pypi.py
 mcp-package-hero/
 ├── src/mcp_package_hero/
 │   ├── __init__.py
-│   ├── server.py          # Main FastMCP server
-│   ├── models.py          # Pydantic models
-│   └── registries/
-│       ├── base.py        # Abstract base class
-│       ├── pypi.py        # PyPI integration
-│       ├── npm.py         # npm integration
-│       └── pubdev.py      # pub.dev integration
+│   ├── server.py              # Main FastMCP server
+│   ├── models.py              # Pydantic models
+│   ├── github_client.py       # GitHub API client
+│   ├── rating_calculator.py   # Rating algorithms
+│   ├── registries/            # Version checking
+│   │   ├── base.py
+│   │   ├── pypi.py
+│   │   ├── npm.py
+│   │   └── pubdev.py
+│   └── raters/                # Quality rating
+│       ├── python_rater.py
+│       ├── javascript_rater.py
+│       └── dart_rater.py
 ├── tests/
 ├── README.md
 └── pyproject.toml
@@ -260,14 +379,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-### v1.1
+### v1.1.0 ✅ (Current)
+- [x] Package quality rating system
+- [x] Multi-dimensional scoring (maintenance, popularity, quality)
+- [x] GitHub integration for repository metrics
+- [x] Integration with ecosystem-native scores (pub.dev, npms.io)
+
+### v1.2.0 (Planned)
+- [ ] Additional ecosystems (Rust, Go, Swift)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries
 
-### v2.0
-- [ ] Additional ecosystems (Rust, Go, Ruby)
+### v2.0 (Future)
 - [ ] Dependency tree analysis
 - [ ] Version compatibility checking
+- [ ] Security vulnerability detection
 
 ---
 
