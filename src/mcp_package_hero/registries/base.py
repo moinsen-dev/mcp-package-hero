@@ -1,7 +1,6 @@
 """Base class for package registry clients."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from ..models import Ecosystem, PackageVersion, VersionStatus
 
@@ -16,6 +15,7 @@ class BaseRegistry(ABC):
         Args:
             ecosystem: The ecosystem this registry serves
             base_url: Base URL for the registry API
+
         """
         self.ecosystem = ecosystem
         self.base_url = base_url
@@ -30,11 +30,11 @@ class BaseRegistry(ABC):
 
         Returns:
             PackageVersion object with version information
+
         """
-        pass
 
     def _create_not_found_response(
-        self, package_name: str, error_msg: Optional[str] = None
+        self, package_name: str, error_msg: str | None = None,
     ) -> PackageVersion:
         """
         Create a not-found response.
@@ -45,6 +45,7 @@ class BaseRegistry(ABC):
 
         Returns:
             PackageVersion with not_found status
+
         """
         return PackageVersion(
             package_name=package_name,
@@ -56,7 +57,7 @@ class BaseRegistry(ABC):
         )
 
     def _create_error_response(
-        self, package_name: str, error_msg: str
+        self, package_name: str, error_msg: str,
     ) -> PackageVersion:
         """
         Create an error response.
@@ -67,6 +68,7 @@ class BaseRegistry(ABC):
 
         Returns:
             PackageVersion with error status
+
         """
         return PackageVersion(
             package_name=package_name,

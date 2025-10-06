@@ -22,6 +22,7 @@ class NpmRegistry(BaseRegistry):
 
         Returns:
             PackageVersion with latest version info
+
         """
         url = f"{self.base_url}/{package_name}"
 
@@ -38,7 +39,7 @@ class NpmRegistry(BaseRegistry):
 
                 if not version:
                     return self._create_error_response(
-                        package_name, "Version information not found in response"
+                        package_name, "Version information not found in response",
                     )
 
                 return PackageVersion(
@@ -51,13 +52,13 @@ class NpmRegistry(BaseRegistry):
 
         except httpx.HTTPStatusError as e:
             return self._create_error_response(
-                package_name, f"HTTP error: {e.response.status_code}"
+                package_name, f"HTTP error: {e.response.status_code}",
             )
         except httpx.RequestError as e:
             return self._create_error_response(
-                package_name, f"Request failed: {str(e)}"
+                package_name, f"Request failed: {e!s}",
             )
         except Exception as e:
             return self._create_error_response(
-                package_name, f"Unexpected error: {str(e)}"
+                package_name, f"Unexpected error: {e!s}",
             )

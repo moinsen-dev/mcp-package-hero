@@ -4,4 +4,4 @@ from .models import Ecosystem, PackageVersion, VersionStatus
 from .server import mcp
 
 __version__ = "1.0.0"
-__all__ = ["mcp", "Ecosystem", "PackageVersion", "VersionStatus"]
+__all__ = ["Ecosystem", "PackageVersion", "VersionStatus", "mcp"]

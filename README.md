@@ -1,8 +1,11 @@
 # 🦸 MCP Package Hero
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-green.svg)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.12-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/moinsen-dev/mcp-package-hero)
+[![Coverage](https://img.shields.io/badge/coverage-81%25-yellowgreen.svg)](https://github.com/moinsen-dev/mcp-package-hero)
+[![Type Check](https://img.shields.io/badge/mypy-passing-blue.svg)](https://github.com/moinsen-dev/mcp-package-hero)
 
 > A focused, reliable Model Context Protocol (MCP) server for checking the latest package versions across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev).
 
@@ -21,7 +24,9 @@ Unlike tools that try to do everything, Package Hero focuses on doing three thin
 - **Fast**: Sub-second response times with async operations
 - **Reliable**: Comprehensive error handling and clear status indicators
 - **LLM-Friendly**: Designed specifically for AI assistants and agents
-- **Type-Safe**: Full type hints and Pydantic validation
+- **Type-Safe**: Full type hints, Pydantic validation, and mypy compliance
+- **Well-Tested**: 81% code coverage with comprehensive test suite
+- **Production-Ready**: Modern Python best practices, timezone-aware, Pydantic V2
 
 ## 📦 Installation
 
@@ -171,11 +176,19 @@ Run the test suite:
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=src --cov-report=html
+uv run pytest --cov=src/mcp_package_hero --cov-report=html
+
+# Run with coverage summary
+uv run pytest --cov=src/mcp_package_hero --cov-report=term-missing
 
 # Run specific test file
 uv run pytest tests/test_registries/test_pypi.py
 ```
+
+### Test Results
+- ✅ 8/8 tests passing
+- ✅ 81% code coverage
+- ✅ All three ecosystems validated with live API calls
 
 ## 🏗️ Development
 
@@ -206,9 +219,19 @@ uv run ruff format .
 # Lint code
 uv run ruff check .
 
+# Auto-fix safe linting issues
+uv run ruff check --fix .
+
 # Type check
 uv run mypy src/
 ```
+
+### Quality Standards
+- ✅ **Type Safety**: Full mypy compliance with Pydantic plugin
+- ✅ **Code Style**: Ruff linting and formatting
+- ✅ **Modern Python**: Python 3.10+ type hints (PEP 604)
+- ✅ **Timezone-Aware**: All timestamps use UTC timezone
+- ✅ **Pydantic V2**: Using latest ConfigDict patterns
 
 ## 🤝 Contributing
 

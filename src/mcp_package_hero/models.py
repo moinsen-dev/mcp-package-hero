@@ -1,10 +1,9 @@
 """Data models for MCP Package Hero."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Ecosystem(str, Enum):
@@ -26,22 +25,20 @@ class VersionStatus(str, Enum):
 class PackageVersion(BaseModel):
     """Package version information."""
 
+    model_config = ConfigDict(use_enum_values=True)
+
     package_name: str = Field(..., description="Name of the package")
     ecosystem: Ecosystem = Field(..., description="Package ecosystem")
-    latest_version: Optional[str] = Field(None, description="Latest stable version")
-    registry_url: Optional[str] = Field(None, description="Link to package registry")
+    latest_version: str | None = Field(None, description="Latest stable version")
+    registry_url: str | None = Field(None, description="Link to package registry")
     checked_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Timestamp of version check"
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp of version check",
     )
     status: VersionStatus = Field(
-        default=VersionStatus.SUCCESS, description="Status of the check"
+        default=VersionStatus.SUCCESS, description="Status of the check",
     )
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
+    error_message: str | None = Field(None, description="Error message if failed")
 
 
 class BatchPackageRequest(BaseModel):
@@ -56,5 +53,6 @@ class BatchPackageResponse(BaseModel):
 
     results: list[PackageVersion] = Field(..., description="List of version results")
     checked_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Timestamp of batch check"
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp of batch check",
     )

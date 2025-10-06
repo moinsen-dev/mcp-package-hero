@@ -1,11 +1,10 @@
 """MCP Package Hero - FastMCP server for package version lookups."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from fastmcp import FastMCP
 
 from .models import (
-    BatchPackageRequest,
     BatchPackageResponse,
     Ecosystem,
     PackageVersion,
@@ -14,9 +13,9 @@ from .registries import NpmRegistry, PubDevRegistry, PyPIRegistry
 
 # Initialize FastMCP server
 mcp = FastMCP(
-    "Package Hero",
+    name="Package Hero",
+    instructions="Get the latest package versions from PyPI, npm, and pub.dev",
     version="1.0.0",
-    description="Get the latest package versions from PyPI, npm, and pub.dev",
 )
 
 # Initialize registry clients
@@ -29,19 +28,18 @@ def get_registry(ecosystem: str):
     """Get the appropriate registry client for an ecosystem."""
     if ecosystem == Ecosystem.PYTHON.value:
         return pypi
-    elif ecosystem == Ecosystem.JAVASCRIPT.value:
+    if ecosystem == Ecosystem.JAVASCRIPT.value:
         return npm
-    elif ecosystem == Ecosystem.DART.value:
+    if ecosystem == Ecosystem.DART.value:
         return pubdev
-    else:
-        raise ValueError(f"Unsupported ecosystem: {ecosystem}")
+    raise ValueError(f"Unsupported ecosystem: {ecosystem}")
 
 
 @mcp.tool()
 async def get_latest_version(
     package_name: str,
     ecosystem: Literal["python", "javascript", "dart"],
-) -> dict:
+) -> dict[str, Any]:
     """
     Get the latest stable version of a package.
 
@@ -62,17 +60,18 @@ async def get_latest_version(
         get_latest_version("requests", "python")
         get_latest_version("react", "javascript")
         get_latest_version("http", "dart")
+
     """
     registry = get_registry(ecosystem)
     result = await registry.get_latest_version(package_name)
-    return result.model_dump(mode="json")
+    return result.model_dump(mode="json")  # type: ignore[no-any-return]
 
 
 @mcp.tool()
 async def get_latest_versions_batch(
     packages: list[dict[str, str]],
     max_packages: int = 10,
-) -> dict:
+) -> dict[str, Any]:
     """
     Get latest versions for multiple packages at once.
 
@@ -91,11 +90,12 @@ async def get_latest_versions_batch(
             {"package_name": "react", "ecosystem": "javascript"},
             {"package_name": "http", "ecosystem": "dart"}
         ])
+
     """
     # Validate and limit number of packages
     if len(packages) > max_packages:
         raise ValueError(
-            f"Too many packages requested. Maximum is {max_packages}, got {len(packages)}"
+            f"Too many packages requested. Maximum is {max_packages}, got {len(packages)}",
         )
 
     results = []
@@ -112,7 +112,7 @@ async def get_latest_versions_batch(
                     latest_version=None,
                     status="error",
                     error_message="Missing package_name or ecosystem",
-                ).model_dump(mode="json")
+                ).model_dump(mode="json"),
             )
             continue
 
@@ -128,7 +128,7 @@ async def get_latest_versions_batch(
                     latest_version=None,
                     status="error",
                     error_message=str(e),
-                ).model_dump(mode="json")
+                ).model_dump(mode="json"),
             )
 
     return BatchPackageResponse(results=results).model_dump(mode="json")
