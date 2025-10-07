@@ -152,6 +152,22 @@ Edit `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-d
 }
 ```
 
+### Claude Code
+
+Add the server globally to Claude Code using the CLI:
+
+#### Option 1: Run directly from GitHub (Recommended)
+
+```bash
+claude mcp add-json package-hero '{"type":"stdio","command":"uvx","args":["--from","git+https://github.com/moinsen-dev/mcp-package-hero.git","mcp-package-hero"]}'
+```
+
+#### Option 2: Run from local directory
+
+```bash
+claude mcp add-json package-hero '{"type":"stdio","command":"uv","args":["run","--directory","/path/to/mcp-package-hero","mcp-package-hero"]}'
+```
+
 ## 📖 Usage
 
 ### Tool 1: Get Latest Version
