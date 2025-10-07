@@ -64,24 +64,35 @@ class JavaScriptPackageRater:
             time_data = npm_data.get("time", {})
             last_release_days = self._calculate_last_release_days(time_data)
 
-            # Get download stats from npms.io
-            downloads = None
-            if npms_scores:
+            # Get download stats from official npm API (primary source)
+            downloads = await self._get_npm_downloads(package_name)
+
+            # Fallback to npms.io only if npm API fails AND npms.io has non-zero data
+            if downloads is None and npms_scores:
                 downloads_raw = npms_scores.get("evaluation", {}).get("popularity", {}).get("downloadsCount")
-                if downloads_raw is not None:
+                if downloads_raw is not None and downloads_raw > 0:
                     downloads = int(downloads_raw)  # Convert to int if float
 
-            # If npms.io has scores, use them as a boost
+            # If npms.io has scores, use them as a boost (only if data appears valid)
             npms_maintenance = None
             npms_popularity = None
             npms_quality = None
+            npms_is_stale = False
 
             if npms_scores:
-                scores = npms_scores.get("score", {})
-                # npms scores are 0-1, convert to 0-100
-                npms_maintenance = scores.get("maintenance", 0) * 100
-                npms_popularity = scores.get("popularity", 0) * 100
-                npms_quality = scores.get("quality", 0) * 100
+                # Check if npms.io data appears stale (0 downloads when we have real data)
+                npms_downloads = npms_scores.get("evaluation", {}).get("popularity", {}).get("downloadsCount", 0)
+                if downloads and downloads > 0 and npms_downloads == 0:
+                    npms_is_stale = True
+
+                # Only use npms.io scores if data appears valid
+                if not npms_is_stale:
+                    # Access scores from score.detail (npms.io API v2 structure)
+                    score_detail = npms_scores.get("score", {}).get("detail", {})
+                    # npms scores are 0-1, convert to 0-100
+                    npms_maintenance = score_detail.get("maintenance", 0) * 100
+                    npms_popularity = score_detail.get("popularity", 0) * 100
+                    npms_quality = score_detail.get("quality", 0) * 100
 
             # Calculate our scores
             maintenance = RatingCalculator.calculate_maintenance_score(
@@ -139,7 +150,7 @@ class JavaScriptPackageRater:
             red_flags = RatingCalculator.generate_red_flags(maintenance, popularity, quality)
 
             # Add npm-specific insights
-            if npms_scores:
+            if npms_scores and not npms_is_stale:
                 final_score = npms_scores.get("score", {}).get("final", 0)
                 if final_score >= 0.8:
                     insights.insert(0, f"Excellent npms.io score: {final_score:.2f}/1.00")
@@ -213,6 +224,28 @@ class JavaScriptPackageRater:
                     return None
                 response.raise_for_status()
                 return response.json()  # type: ignore[no-any-return]
+            except httpx.HTTPError:
+                return None
+
+    async def _get_npm_downloads(self, package_name: str) -> int | None:
+        """Get download statistics from official npm downloads API.
+
+        Args:
+            package_name: Package name
+
+        Returns:
+            Monthly download count or None if unavailable
+        """
+        url = f"https://api.npmjs.org/downloads/point/last-month/{package_name}"
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, timeout=10.0)
+                if response.status_code == 404:
+                    return None
+                response.raise_for_status()
+                data = response.json()
+                return data.get("downloads")  # type: ignore[no-any-return]
             except httpx.HTTPError:
                 return None
 

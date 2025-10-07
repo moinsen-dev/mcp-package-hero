@@ -194,7 +194,7 @@ class GitHubClient:
 
         if match:
             owner = match.group(1)
-            repo = match.group(2).rstrip(".git")
+            repo = match.group(2).removesuffix(".git")
             return owner, repo
 
         return None

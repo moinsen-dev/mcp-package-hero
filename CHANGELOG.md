@@ -254,6 +254,69 @@ No new dependencies added - uses existing httpx for all HTTP operations.
 
 ---
 
+## [1.1.1] - 2025-10-07
+
+### 🐛 Bug Fixes
+
+This patch release fixes three critical bugs in the JavaScript package rating system that were causing significant underscoring of high-quality packages.
+
+#### Fixed npms.io Score Access (javascript_rater.py)
+- **Issue**: Incorrectly accessed `score.maintenance` instead of `score.detail.maintenance`
+- **Impact**: npms.io quality scores returned 0 instead of actual values (e.g., 0.93 for React)
+- **Fix**: Updated to correct API v2 structure path: `score.detail.{maintenance,popularity,quality}`
+- **Result**: Packages now correctly receive blended scores from npms.io
+
+#### Fixed GitHub Repository Name Mangling (github_client.py)
+- **Issue**: Used `rstrip(".git")` which removed any trailing characters in ".git" string
+- **Impact**: Repository names were corrupted:
+  - `eslint` → `eslin`
+  - `react` → `reac`
+  - `typescript` → `typescrip`
+- **Fix**: Changed to `removesuffix(".git")` for proper suffix removal
+- **Result**: GitHub API calls now succeed, stars and metrics properly fetched
+
+#### Switched to Official npm Downloads API (javascript_rater.py)
+- **Issue**: Relied on npms.io for download counts, which is outdated/stale for many packages
+- **Impact**: Severely incorrect download counts:
+  - Expo: 0 downloads (actual: 7.7M/month)
+  - TypeScript: 0 downloads (actual: 395M/month)
+  - React: 72M downloads (actual: 189M/month)
+- **Fix**:
+  - Added `_get_npm_downloads()` method using official npm downloads API
+  - Made npms.io optional, only used when data appears valid
+  - Detect stale npms.io data (0 downloads when we have real data) and skip blending
+- **Result**: Accurate, up-to-date download counts from npm registry
+
+### 📊 Impact
+
+Package ratings dramatically improved with accurate data:
+
+| Package | Before (v1.1.0) | After (v1.1.1) | Improvement |
+|---------|-----------------|----------------|-------------|
+| **ESLint** | 46.3 (F) | **93.3 (A)** | +47.0 points |
+| **React** | 40.7 (F) | **87.1 (A-)** | +46.4 points |
+| **Expo** | 28.2 (F) | **81.4 (B+)** | +53.2 points |
+| **TypeScript** | 48.5 (F) | **81.4 (B+)** | +32.9 points |
+| **Zod** | 45.7 (F) | **89.4 (A-)** | +43.7 points |
+
+### 🧪 Testing
+
+- All 48 tests continue to pass
+- Validated against real-world packages (React, ESLint, TypeScript, Expo, Zod)
+- No regressions in existing functionality
+
+### 🔧 Changed Files
+
+- `src/mcp_package_hero/raters/javascript_rater.py`:
+  - Lines 67-74: Switch to npm downloads API
+  - Lines 76-95: Add npms.io stale data detection
+  - Lines 153-156: Conditional npms.io insights
+  - Lines 220-240: New `_get_npm_downloads()` method
+- `src/mcp_package_hero/github_client.py`:
+  - Line 197: Fix `rstrip()` → `removesuffix()`
+
+---
+
 ## [Unreleased]
 
 ### Planned for v1.2
