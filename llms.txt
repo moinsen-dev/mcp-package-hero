@@ -1,0 +1,49 @@
+# MCP Package Hero
+
+> A comprehensive Model Context Protocol (MCP) server for checking package versions, rating package quality, and managing llms.txt documentation across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev) ecosystems
+
+MCP Package Hero is a production-ready MCP server that helps you make informed decisions about packages by providing version information, comprehensive quality ratings, and llms.txt documentation support. Built with FastMCP, fully type-safe with Pydantic V2, and extensively tested.
+
+## Core Documentation
+
+- [README](README.md): Project overview, installation, configuration, and usage examples
+- [CHANGELOG](CHANGELOG.md): Complete version history with detailed release notes for v1.0.0, v1.1.0, v1.1.1, and v1.2.0
+
+## Project Planning & Design
+
+- [Product Requirements Document](PRD.md): Original vision, scope, and technical specifications
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md): Architecture decisions and implementation details
+- [Release Guide](RELEASE.md): Release process and versioning guidelines
+- [Enhancement Plan](ENHANCEMENT_PLAN.md): Future improvements and feature ideas
+- [Package Rating Brainstorm](PACKAGE_RATING_BRAINSTORM.md): Design notes for the quality rating system
+
+## Examples
+
+- [Basic Usage](examples/basic_usage.py): Example code demonstrating package version checking and quality rating
+
+## API Reference
+
+The server exposes 5 MCP tools:
+
+1. **get_latest_version** - Get latest version of a single package
+2. **get_latest_versions_batch** - Check multiple packages at once (max 10)
+3. **rate_package** - Get comprehensive quality rating with maintenance, popularity, and quality scores
+4. **get_llms_txt** - Fetch llms.txt documentation from package repositories
+5. **create_llms_txt** - Generate llms.txt for your project
+
+## Key Features
+
+- **Multi-Ecosystem Support**: Python (PyPI), JavaScript/TypeScript (npm), Dart/Flutter (pub.dev)
+- **Quality Rating System**: Multi-dimensional scoring across maintenance (35%), popularity (25%), and quality (40%)
+- **llms.txt Support**: Fetch and generate LLM-friendly documentation files following the llmstxt.org specification
+- **Type-Safe**: Full type hints, Pydantic validation, and mypy compliance
+- **Well-Tested**: 60 tests covering all features with comprehensive test coverage
+- **Production-Ready**: Modern Python best practices, timezone-aware, async operations
+
+## Installation
+
+Requires Python 3.10+ and can be installed via uv (recommended) or pip. Configuration examples provided for Claude Desktop, Cline, and Claude Code.
+
+## GitHub Repository
+
+https://github.com/moinsen-dev/mcp-package-hero

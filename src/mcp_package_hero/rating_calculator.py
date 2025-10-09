@@ -134,6 +134,8 @@ class RatingCalculator:
         has_license: bool,
         has_tests: bool | None = None,
         readme_length: int | None = None,
+        has_llms_txt: bool | None = None,
+        has_llms_full_txt: bool | None = None,
     ) -> QualityScore:
         """Calculate quality metrics score.
 
@@ -142,6 +144,8 @@ class RatingCalculator:
             has_license: Has license file
             has_tests: Has test indicators
             readme_length: Length of README (for quality assessment)
+            has_llms_txt: Has llms.txt file
+            has_llms_full_txt: Has llms-full.txt file
 
         Returns:
             QualityScore object
@@ -171,17 +175,36 @@ class RatingCalculator:
         else:
             test_score = 0.0
 
+        # llms.txt score (bonus for LLM-friendly documentation)
+        if has_llms_txt is None:
+            llms_txt_score = 0.0  # Not checked
+        elif has_llms_txt and has_llms_full_txt:
+            llms_txt_score = 100.0  # Has both files - excellent
+        elif has_llms_txt:
+            llms_txt_score = 70.0  # Has llms.txt only - good
+        else:
+            llms_txt_score = 0.0  # No llms.txt
+
         # Overall quality (weighted)
-        overall = (doc_score * 0.4) + (license_score * 0.3) + (test_score * 0.3)
+        # Adjusted weights to include llms.txt: doc(35%), license(25%), tests(25%), llms.txt(15%)
+        overall = (
+            (doc_score * 0.35)
+            + (license_score * 0.25)
+            + (test_score * 0.25)
+            + (llms_txt_score * 0.15)
+        )
 
         return QualityScore(
             score=round(overall, 1),
             has_documentation=has_documentation,
             has_license=has_license,
             has_tests=has_tests,
+            has_llms_txt=has_llms_txt,
+            has_llms_full_txt=has_llms_full_txt,
             documentation_score=round(doc_score, 1),
             license_score=round(license_score, 1),
             test_score=round(test_score, 1),
+            llms_txt_score=round(llms_txt_score, 1),
         )
 
     @classmethod
@@ -280,6 +303,10 @@ class RatingCalculator:
             insights.append("High quality package with good documentation and license")
         if quality.has_tests:
             insights.append("Includes test suite")
+        if quality.has_llms_txt and quality.has_llms_full_txt:
+            insights.append("Excellent LLM-friendly documentation (llms.txt + llms-full.txt)")
+        elif quality.has_llms_txt:
+            insights.append("Has LLM-friendly documentation (llms.txt)")
 
         return insights
 
@@ -325,5 +352,6 @@ class RatingCalculator:
             red_flags.append("Missing documentation")
         if quality.has_tests is False:
             red_flags.append("No test suite detected")
+        # Note: Not having llms.txt is not a red flag since it's still an emerging standard
 
         return red_flags

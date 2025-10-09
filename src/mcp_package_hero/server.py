@@ -2,8 +2,11 @@
 
 from typing import Any, Literal
 
+import httpx
 from fastmcp import FastMCP
 
+from .llms_txt_client import LLMsTxtClient
+from .llms_txt_generator import LLMsTxtGenerator
 from .models import (
     BatchPackageResponse,
     Ecosystem,
@@ -16,8 +19,8 @@ from .registries import NpmRegistry, PubDevRegistry, PyPIRegistry
 # Initialize FastMCP server
 mcp = FastMCP(
     name="Package Hero",
-    instructions="Get the latest package versions and comprehensive quality ratings from PyPI, npm, and pub.dev",
-    version="1.1.0",
+    instructions="Get the latest package versions, comprehensive quality ratings, and llms.txt documentation from PyPI, npm, and pub.dev",
+    version="1.2.0",
 )
 
 # Initialize registry clients
@@ -29,6 +32,10 @@ pubdev = PubDevRegistry()
 python_rater = PythonPackageRater()
 javascript_rater = JavaScriptPackageRater()
 dart_rater = DartPackageRater()
+
+# Initialize llms.txt clients
+llms_txt_client = LLMsTxtClient()
+llms_txt_generator = LLMsTxtGenerator()
 
 
 def get_registry(ecosystem: str):
@@ -191,6 +198,139 @@ async def rate_package(
     """
     rater = get_rater(ecosystem)
     result = await rater.rate_package(package_name)
+    return result.model_dump(mode="json")  # type: ignore[no-any-return]
+
+
+async def _fetch_registry_data(package_name: str, ecosystem: str) -> dict[str, Any] | None:
+    """
+    Fetch raw package data from registry.
+
+    Args:
+        package_name: Name of the package
+        ecosystem: Package ecosystem
+
+    Returns:
+        Raw registry data or None if not found
+    """
+    registry_urls = {
+        "python": f"https://pypi.org/pypi/{package_name}/json",
+        "javascript": f"https://registry.npmjs.org/{package_name}",
+        "dart": f"https://pub.dev/api/packages/{package_name}",
+    }
+
+    url = registry_urls.get(ecosystem)
+    if not url:
+        return None
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=10.0)
+            if response.status_code == 404:
+                return None
+            response.raise_for_status()
+            return response.json()  # type: ignore[no-any-return]
+    except httpx.HTTPError:
+        return None
+
+
+@mcp.tool()
+async def get_llms_txt(
+    package_name: str,
+    ecosystem: Literal["python", "javascript", "dart"],
+    include_full: bool = False,
+) -> dict[str, Any]:
+    """
+    Get llms.txt documentation file for a package.
+
+    llms.txt is an emerging standard for providing LLM-friendly documentation.
+    This tool fetches llms.txt files from package repositories, homepages, or documentation sites.
+
+    Args:
+        package_name: The name of the package (e.g., "requests", "react", "http")
+        ecosystem: The package ecosystem - one of: "python", "javascript", or "dart"
+        include_full: Whether to also fetch llms-full.txt (optional, default: False)
+
+    Returns:
+        Dictionary with llms.txt information including:
+        - package_name: Name of the package
+        - ecosystem: Package ecosystem
+        - llms_txt_content: Parsed llms.txt content with project name, summary, and sections
+        - llms_full_txt_content: Full documentation text (if requested and available)
+        - source_url: URL where llms.txt was found
+        - source_type: Type of source (github_main, homepage, etc.)
+        - repository_url: Package repository URL
+        - homepage_url: Package homepage URL
+        - status: "success", "not_found", or "error"
+
+    Examples:
+        get_llms_txt("fasthtml", "python")
+        get_llms_txt("react", "javascript", include_full=True)
+        get_llms_txt("flutter_bloc", "dart")
+
+    """
+    # Fetch registry data
+    registry_data = await _fetch_registry_data(package_name, ecosystem)
+
+    if not registry_data:
+        return {
+            "package_name": package_name,
+            "ecosystem": ecosystem,
+            "status": "not_found",
+            "error_message": f"Package '{package_name}' not found in {ecosystem} registry",
+        }
+
+    # Fetch llms.txt
+    result = await llms_txt_client.fetch_for_package(
+        package_name=package_name,
+        ecosystem=ecosystem,
+        registry_data=registry_data,
+        include_full=include_full,
+    )
+
+    return result.model_dump(mode="json")  # type: ignore[no-any-return]
+
+
+@mcp.tool()
+async def create_llms_txt(
+    project_name: str,
+    description: str,
+    scan_directory: str = ".",
+    sections: list[str] | None = None,
+) -> dict[str, Any]:
+    """
+    Generate an llms.txt file for your project.
+
+    Creates a standardized llms.txt file by scanning your project directory
+    for documentation files and generating structured markdown.
+
+    Args:
+        project_name: Name of your project
+        description: Brief project description (will appear in blockquote)
+        scan_directory: Directory to scan for documentation (default: current directory)
+        sections: Specific sections to include (optional, e.g., ["documentation", "examples", "api"])
+                 Available sections: documentation, examples, api, guides, configuration
+
+    Returns:
+        Dictionary with generated llms.txt:
+        - content: Generated llms.txt markdown content
+        - discovered_files: Files found by category
+        - suggested_path: Suggested file path to save
+        - status: "success" or "error"
+
+    Examples:
+        create_llms_txt("My Project", "A great Python library")
+        create_llms_txt("React App", "Modern web application", sections=["documentation", "examples"])
+        create_llms_txt("API Server", "REST API service", scan_directory="./docs")
+
+    """
+    result = await llms_txt_generator.generate(
+        project_name=project_name,
+        description=description,
+        scan_directory=scan_directory,
+        sections=sections,
+        include_file_tree=True,
+    )
+
     return result.model_dump(mode="json")  # type: ignore[no-any-return]
 
 

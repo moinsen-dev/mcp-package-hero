@@ -85,7 +85,7 @@ class TestQualityScore:
     """Tests for quality score calculation."""
 
     def test_excellent_quality(self):
-        """Test package with excellent quality."""
+        """Test package with excellent quality (without llms.txt)."""
         score = RatingCalculator.calculate_quality_score(
             has_documentation=True,
             has_license=True,
@@ -93,10 +93,48 @@ class TestQualityScore:
             readme_length=3000,
         )
 
-        assert score.score >= 90
+        # With new weights (35% doc, 25% license, 25% tests, 15% llms.txt)
+        # Perfect without llms.txt = 85.0
+        assert score.score == 85.0
         assert score.has_documentation is True
         assert score.has_license is True
         assert score.has_tests is True
+        assert score.has_llms_txt is None  # Not checked
+        assert score.llms_txt_score == 0.0
+
+    def test_excellent_quality_with_llms_txt(self):
+        """Test package with excellent quality including llms.txt."""
+        score = RatingCalculator.calculate_quality_score(
+            has_documentation=True,
+            has_license=True,
+            has_tests=True,
+            readme_length=3000,
+            has_llms_txt=True,
+            has_llms_full_txt=False,
+        )
+
+        # With llms.txt (70 points): 100*0.35 + 100*0.25 + 100*0.25 + 70*0.15 = 95.5
+        assert score.score == 95.5
+        assert score.has_llms_txt is True
+        assert score.has_llms_full_txt is False
+        assert score.llms_txt_score == 70.0
+
+    def test_perfect_quality_with_llms_full(self):
+        """Test package with perfect quality including both llms.txt files."""
+        score = RatingCalculator.calculate_quality_score(
+            has_documentation=True,
+            has_license=True,
+            has_tests=True,
+            readme_length=3000,
+            has_llms_txt=True,
+            has_llms_full_txt=True,
+        )
+
+        # With both llms files (100 points): 100*0.35 + 100*0.25 + 100*0.25 + 100*0.15 = 100.0
+        assert score.score == 100.0
+        assert score.has_llms_txt is True
+        assert score.has_llms_full_txt is True
+        assert score.llms_txt_score == 100.0
 
     def test_poor_quality(self):
         """Test package with poor quality."""

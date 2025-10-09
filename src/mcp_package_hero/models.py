@@ -108,9 +108,12 @@ class QualityScore(BaseModel):
     has_documentation: bool = Field(..., description="Has README/documentation")
     has_license: bool = Field(..., description="Has license")
     has_tests: bool | None = Field(None, description="Has test indicators")
+    has_llms_txt: bool | None = Field(None, description="Has llms.txt file")
+    has_llms_full_txt: bool | None = Field(None, description="Has llms-full.txt file")
     documentation_score: float = Field(..., ge=0, le=100, description="Documentation score")
     license_score: float = Field(..., ge=0, le=100, description="License score")
     test_score: float = Field(..., ge=0, le=100, description="Test score")
+    llms_txt_score: float = Field(..., ge=0, le=100, description="llms.txt documentation score")
 
 
 class PackageRating(BaseModel):

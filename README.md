@@ -14,6 +14,7 @@
 MCP Package Hero helps you make informed decisions about packages by providing:
 - **Version Information**: Get the latest stable version of any package
 - **Quality Ratings**: Comprehensive quality analysis across multiple dimensions
+- **llms.txt Documentation**: Fetch and generate LLM-friendly documentation files
 
 Package Hero focuses on three major ecosystems:
 - ✅ Python packages on PyPI
@@ -31,15 +32,23 @@ Package Hero focuses on three major ecosystems:
 - **Comprehensive Analysis**: Multi-dimensional package quality scoring
   - 🔧 **Maintenance Health** (35%): Release frequency, issue resolution, PR activity
   - 📊 **Popularity** (25%): Downloads, GitHub stars, community adoption
-  - ✨ **Quality Metrics** (40%): Documentation, license, tests
+  - ✨ **Quality Metrics** (40%): Documentation (35%), license (25%), tests (25%), llms.txt (15%)
 - **Letter Grades**: A+ to F rating system for quick assessment
 - **Actionable Insights**: Key strengths and red flags for each package
 - **Ecosystem Integration**: Leverages native scores (pub.dev pub points, npms.io scores)
+- **llms.txt Bonus** (v1.2.0+): Packages with llms.txt get bonus points (70 for llms.txt, 100 for both llms.txt + llms-full.txt)
+
+### llms.txt Support (v1.2.0+)
+- **Fetch llms.txt**: Get LLM-friendly documentation from package repositories
+- **Generate llms.txt**: Create standardized documentation for your projects
+- **Multi-Source**: Searches GitHub, homepages, and documentation sites
+- **Validation**: Parses and validates llms.txt format compliance
+- **Smart Scanning**: Automatically discovers documentation files in projects
 
 ### Technical Excellence
 - **LLM-Friendly**: Designed specifically for AI assistants and agents
 - **Type-Safe**: Full type hints, Pydantic validation, and mypy compliance
-- **Well-Tested**: 48 tests, comprehensive coverage for all features
+- **Well-Tested**: Comprehensive coverage for all features
 - **Production-Ready**: Modern Python best practices, timezone-aware, Pydantic V2
 
 ## 📦 Installation
@@ -296,6 +305,89 @@ Get comprehensive quality rating for a package:
 }
 ```
 
+### Tool 4: Get llms.txt (v1.2.0+)
+
+Fetch llms.txt documentation file for a package:
+
+```python
+# Example queries:
+"Get the llms.txt file for fasthtml"
+"Show me the documentation structure for react"
+"Fetch llms.txt and llms-full.txt for flutter_bloc"
+```
+
+**Tool Name**: `get_llms_txt`
+
+**Parameters**:
+- `package_name` (string): Name of the package
+- `ecosystem` (string): One of "python", "javascript", or "dart"
+- `include_full` (boolean, optional): Also fetch llms-full.txt (default: false)
+
+**Example Response**:
+```json
+{
+  "package_name": "fasthtml",
+  "ecosystem": "python",
+  "llms_txt_content": {
+    "project_name": "FastHTML",
+    "summary": "FastHTML is a python library which brings together Starlette, Uvicorn, HTMX, and fastcore's FT FastTags",
+    "sections": [
+      {
+        "title": "Docs",
+        "links": [
+          {
+            "title": "FastHTML quick start",
+            "url": "https://fastht.ml/docs/tutorials/quickstart_for_web_devs.html.md",
+            "description": "Overview of features"
+          }
+        ]
+      }
+    ],
+    "raw_content": "# FastHTML\n\n> FastHTML is a python library...",
+    "is_valid": true,
+    "validation_warnings": []
+  },
+  "source_url": "https://raw.githubusercontent.com/AnswerDotAI/fasthtml/main/llms.txt",
+  "source_type": "github_main",
+  "repository_url": "https://github.com/AnswerDotAI/fasthtml",
+  "status": "success"
+}
+```
+
+### Tool 5: Create llms.txt (v1.2.0+)
+
+Generate an llms.txt file for your project:
+
+```python
+# Example queries:
+"Create an llms.txt file for my project called 'My Library'"
+"Generate llms.txt documentation for this codebase"
+"Create llms.txt with only documentation and examples sections"
+```
+
+**Tool Name**: `create_llms_txt`
+
+**Parameters**:
+- `project_name` (string): Name of your project
+- `description` (string): Brief project description
+- `scan_directory` (string, optional): Directory to scan (default: ".")
+- `sections` (list, optional): Specific sections to include (e.g., ["documentation", "examples"])
+
+**Available Sections**: documentation, examples, api, guides, configuration
+
+**Example Response**:
+```json
+{
+  "content": "# My Project\n\n> A comprehensive Python library\n\n## Documentation\n\n- [README](README.md): Project overview and getting started\n- [Contributing Guide](CONTRIBUTING.md): Guidelines for contributing\n\n## Examples\n\n- [Basic Example](examples/basic.py): Example code\n",
+  "discovered_files": {
+    "documentation": ["README.md", "CONTRIBUTING.md"],
+    "examples": ["examples/basic.py"]
+  },
+  "suggested_path": "./llms.txt",
+  "status": "success"
+}
+```
+
 ## 🧪 Testing
 
 Run the test suite:
@@ -315,8 +407,8 @@ uv run pytest tests/test_registries/test_pypi.py
 ```
 
 ### Test Results
-- ✅ 48/48 tests passing
-- ✅ Comprehensive coverage for version checking and rating features
+- ✅ 62/62 tests passing
+- ✅ Comprehensive coverage for version checking, rating, and llms.txt features
 - ✅ All three ecosystems validated with live API calls
 
 ## 🏗️ Development
@@ -395,13 +487,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-### v1.1.0 ✅ (Current)
+### v1.2.0 ✅ (Current)
+- [x] llms.txt support - fetch documentation from packages
+- [x] llms.txt generation - create documentation for projects
+- [x] Multi-source fetching (GitHub, homepages)
+- [x] Documentation validation and parsing
+
+### v1.1.0 ✅
 - [x] Package quality rating system
 - [x] Multi-dimensional scoring (maintenance, popularity, quality)
 - [x] GitHub integration for repository metrics
 - [x] Integration with ecosystem-native scores (pub.dev, npms.io)
 
-### v1.2.0 (Planned)
+### v1.3.0 (Planned)
 - [ ] Additional ecosystems (Rust, Go, Swift)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries

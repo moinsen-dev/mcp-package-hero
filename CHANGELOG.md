@@ -317,13 +317,176 @@ Package ratings dramatically improved with accurate data:
 
 ---
 
+## [1.2.0] - 2025-10-09
+
+### 🎉 Major Feature Release: llms.txt Documentation Support
+
+This release adds comprehensive llms.txt support for fetching and generating LLM-friendly documentation files.
+
+### ✨ Features
+
+#### New MCP Tool: `get_llms_txt`
+- **Fetch llms.txt Documentation**: Retrieve LLM-friendly documentation for any package
+  - Multi-source fetching strategy:
+    - GitHub repositories (tries main, master, develop branches)
+    - Package homepages
+    - Registry documentation sites
+  - Structured content parsing with validation
+  - Optional llms-full.txt support
+  - Returns parsed content with project name, summary, and sections
+
+#### New MCP Tool: `create_llms_txt`
+- **Generate llms.txt for Projects**: Create standardized documentation for your codebase
+  - Smart directory scanning with gitignore support
+  - Automatic file categorization:
+    - Documentation (README, CONTRIBUTING, CHANGELOG, etc.)
+    - Examples (examples/, samples/, demo/ directories)
+    - API Reference (API docs, reference/ directories)
+    - Guides & Tutorials (docs/guides/, tutorials/)
+    - Configuration (config files, .env.example)
+  - Generates spec-compliant markdown with H1, blockquote, and H2 sections
+  - Intelligent file descriptions based on filename patterns
+
+#### llms.txt Specification Support
+- Follows [llmstxt.org](https://llmstxt.org/) specification
+- Validates markdown structure (H1 requirement, section format)
+- Parses sections and links with optional descriptions
+- Warning system for non-compliant formats
+
+### 🏗️ New Components
+
+#### Core Modules
+- `llms_txt_models.py`: Pydantic models for llms.txt functionality
+  - `LLMsTxtResponse`: Complete response with parsed content
+  - `LLMsTxtContent`: Parsed markdown structure
+  - `LLMsTxtSection`: Section with links
+  - `LLMsTxtGenerateResponse`: Generation result
+  - Status and source enums
+
+- `llms_txt_client.py`: Multi-source fetching client
+  - GitHub raw file fetching (multi-branch support)
+  - Homepage and registry URL fetching
+  - Markdown parsing with validation
+  - Repository and homepage URL extraction from package metadata
+
+- `llms_txt_generator.py`: Documentation generator
+  - Directory scanning with ignore patterns
+  - File categorization by type
+  - Markdown generation following llms.txt spec
+  - Smart title and description generation
+
+#### Helper Functions
+- `_fetch_registry_data()` in server.py: Unified registry data fetching
+- Multi-source fallback strategy with graceful degradation
+
+### 🧪 Testing
+
+#### New Test Suite
+- `tests/test_llms_txt.py`: 12 comprehensive tests
+  - Link parsing (valid, no description, invalid)
+  - Content parsing (basic, missing H1)
+  - URL extraction (repository, homepage)
+  - File title and description generation
+  - Markdown generation (basic, empty files)
+  - Generator success scenarios
+
+#### Test Results
+- **Total Tests**: 62 (up from 48)
+- **Status**: 62/62 passing ✅
+- **Coverage**: Comprehensive coverage for all llms.txt features and rating integration
+
+### 🔧 Changed
+
+- Updated `server.py`:
+  - Added `get_llms_txt` tool with multi-source fetching
+  - Added `create_llms_txt` tool with directory scanning
+  - Updated version to 1.2.0
+  - Enhanced MCP server instructions to include llms.txt
+
+- Updated `pyproject.toml`:
+  - Version bumped to 1.2.0
+  - Updated description to include llms.txt functionality
+
+#### Enhanced Rating System
+- **Updated `rate_package` Tool**: Now includes llms.txt in quality scoring
+  - Quality score weights adjusted: Documentation (35%), License (25%), Tests (25%), llms.txt (15%)
+  - llms.txt scoring tiers:
+    - 100 points: Has both llms.txt and llms-full.txt (excellent LLM-friendly docs)
+    - 70 points: Has llms.txt only (good LLM-friendly docs)
+    - 0 points: No llms.txt (not penalized, as it's an emerging standard)
+  - Perfect quality score now requires both traditional indicators AND llms.txt files
+  - Maximum quality score without llms.txt: 85.0 (down from 100.0)
+  - Maximum quality score with llms.txt: 95.5
+  - Perfect quality score (100.0): Requires both llms.txt and llms-full.txt
+
+- **Updated Rater Implementations**:
+  - `raters/python_rater.py`: Checks for llms.txt during package rating
+  - `raters/javascript_rater.py`: Checks for llms.txt during package rating
+  - `raters/dart_rater.py`: Checks for llms.txt during package rating
+  - All raters use `LLMsTxtClient` to fetch llms.txt status
+  - Graceful error handling: Failed llms.txt checks don't crash rating
+
+- **Updated `rating_calculator.py`**:
+  - Added `has_llms_txt` and `has_llms_full_txt` parameters to `calculate_quality_score()`
+  - Added insights generation for llms.txt adoption:
+    - "Excellent LLM-friendly documentation (llms.txt + llms-full.txt)"
+    - "Has LLM-friendly documentation (llms.txt)"
+  - No red flags for missing llms.txt (emerging standard, not required)
+
+- **Updated `models.py`**:
+  - Added `has_llms_txt`, `has_llms_full_txt`, and `llms_txt_score` fields to `QualityScore` model
+  - All fields are optional for backward compatibility
+
+### 📚 Documentation
+
+- **README.md**:
+  - Added Tool 4 documentation (get_llms_txt)
+  - Added Tool 5 documentation (create_llms_txt)
+  - Updated features section with llms.txt support and rating integration
+  - Updated quality metrics breakdown to show llms.txt weighting (15%)
+  - Added llms.txt bonus explanation (70 points for llms.txt, 100 for both files)
+  - Added comprehensive example responses
+  - Updated test results (62 tests, up from 48)
+  - Updated roadmap with v1.2.0 completion
+
+- **CHANGELOG.md**: This comprehensive release documentation
+
+### 🎯 Design Decisions
+
+- **Return Content, Don't Write**: `create_llms_txt` returns content for user to save (safer, more flexible)
+- **Multi-Branch Fallback**: Try main/master/develop to maximize llms.txt discovery
+- **Lenient Parsing**: Parse non-compliant llms.txt but warn about issues
+- **No External Dependencies**: Uses only existing httpx, no new dependencies added
+- **Gitignore-Aware**: Respects common ignore patterns (node_modules, .git, venv, etc.)
+
+### 📦 Dependencies
+
+No new dependencies added - uses existing httpx for all HTTP operations.
+
+### 💡 Use Cases
+
+1. **Documentation Discovery**: Fetch curated documentation from popular packages
+2. **Project Setup**: Generate llms.txt for new or existing projects
+3. **LLM Context**: Provide structured documentation for LLM consumption
+4. **Documentation Standards**: Encourage adoption of llms.txt standard
+
+### 📝 Known Limitations
+
+- llms.txt is still an emerging standard (not universally adopted)
+- GitHub raw file fetching is subject to rate limits
+- Directory scanning depth limited to 3 levels (performance)
+- File descriptions are heuristic-based
+
+---
+
 ## [Unreleased]
 
-### Planned for v1.2
+### Planned for v1.3
 - [ ] Additional ecosystems: Rust (crates.io), Go (pkg.go.dev), Swift (SwiftPM)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries (not just latest)
 - [ ] GitHub token configuration for higher rate limits
+- [ ] llms-full.txt generation support
 
 ### Planned for v2.0
 - [ ] Dependency tree analysis

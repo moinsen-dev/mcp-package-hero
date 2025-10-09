@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import httpx
 
 from mcp_package_hero.github_client import GitHubClient
+from mcp_package_hero.llms_txt_client import LLMsTxtClient
 from mcp_package_hero.models import Ecosystem, PackageRating, VersionStatus
 from mcp_package_hero.rating_calculator import RatingCalculator
 
@@ -21,6 +22,7 @@ class PythonPackageRater:
         self.pypi_base_url = "https://pypi.org/pypi"
         self.pypistats_base_url = "https://pypistats.org/api"
         self.github_client = GitHubClient(github_token)
+        self.llms_txt_client = LLMsTxtClient()
 
     async def rate_package(self, package_name: str) -> PackageRating:
         """Rate a Python package.
@@ -85,11 +87,34 @@ class PythonPackageRater:
             has_license = bool(license_name)
             has_tests = None  # Cannot determine easily from PyPI API
 
+            # Check for llms.txt
+            has_llms_txt = None
+            has_llms_full_txt = None
+            try:
+                llms_txt_result = await self.llms_txt_client.fetch_for_package(
+                    package_name=package_name,
+                    ecosystem="python",
+                    registry_data=pypi_data,
+                    include_full=True,
+                )
+                if llms_txt_result.status == "success":
+                    has_llms_txt = llms_txt_result.llms_txt_content is not None
+                    has_llms_full_txt = llms_txt_result.llms_full_txt_content is not None
+                else:
+                    has_llms_txt = False
+                    has_llms_full_txt = False
+            except Exception:
+                # If llms.txt check fails, treat as not having it
+                has_llms_txt = False
+                has_llms_full_txt = False
+
             quality = RatingCalculator.calculate_quality_score(
                 has_documentation=has_documentation,
                 has_license=has_license,
                 has_tests=has_tests,
                 readme_length=readme_length,
+                has_llms_txt=has_llms_txt,
+                has_llms_full_txt=has_llms_full_txt,
             )
 
             # Calculate overall score and grade
