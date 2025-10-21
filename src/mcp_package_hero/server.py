@@ -10,28 +10,29 @@ from .llms_txt_generator import LLMsTxtGenerator
 from .models import (
     BatchPackageResponse,
     Ecosystem,
-    PackageRating,
     PackageVersion,
 )
-from .raters import DartPackageRater, JavaScriptPackageRater, PythonPackageRater
-from .registries import NpmRegistry, PubDevRegistry, PyPIRegistry
+from .raters import DartPackageRater, JavaScriptPackageRater, PythonPackageRater, RustPackageRater
+from .registries import CratesRegistry, NpmRegistry, PubDevRegistry, PyPIRegistry
 
 # Initialize FastMCP server
 mcp = FastMCP(
     name="Package Hero",
-    instructions="Get the latest package versions, comprehensive quality ratings, and llms.txt documentation from PyPI, npm, and pub.dev",
-    version="1.2.0",
+    instructions="Get the latest package versions, comprehensive quality ratings, and llms.txt documentation from PyPI, npm, pub.dev, and crates.io",
+    version="1.3.0",
 )
 
 # Initialize registry clients
 pypi = PyPIRegistry()
 npm = NpmRegistry()
 pubdev = PubDevRegistry()
+crates = CratesRegistry()
 
 # Initialize rater clients
 python_rater = PythonPackageRater()
 javascript_rater = JavaScriptPackageRater()
 dart_rater = DartPackageRater()
+rust_rater = RustPackageRater()
 
 # Initialize llms.txt clients
 llms_txt_client = LLMsTxtClient()
@@ -46,6 +47,8 @@ def get_registry(ecosystem: str):
         return npm
     if ecosystem == Ecosystem.DART.value:
         return pubdev
+    if ecosystem == Ecosystem.RUST.value:
+        return crates
     raise ValueError(f"Unsupported ecosystem: {ecosystem}")
 
 
@@ -57,20 +60,22 @@ def get_rater(ecosystem: str):
         return javascript_rater
     if ecosystem == Ecosystem.DART.value:
         return dart_rater
+    if ecosystem == Ecosystem.RUST.value:
+        return rust_rater
     raise ValueError(f"Unsupported ecosystem: {ecosystem}")
 
 
 @mcp.tool()
 async def get_latest_version(
     package_name: str,
-    ecosystem: Literal["python", "javascript", "dart"],
+    ecosystem: Literal["python", "javascript", "dart", "rust"],
 ) -> dict[str, Any]:
     """
     Get the latest stable version of a package.
 
     Args:
-        package_name: The name of the package (e.g., "requests", "react", "http")
-        ecosystem: The package ecosystem - one of: "python", "javascript", or "dart"
+        package_name: The name of the package (e.g., "requests", "react", "http", "serde")
+        ecosystem: The package ecosystem - one of: "python", "javascript", "dart", or "rust"
 
     Returns:
         Dictionary with package information including:
@@ -85,6 +90,7 @@ async def get_latest_version(
         get_latest_version("requests", "python")
         get_latest_version("react", "javascript")
         get_latest_version("http", "dart")
+        get_latest_version("serde", "rust")
 
     """
     registry = get_registry(ecosystem)
@@ -113,7 +119,8 @@ async def get_latest_versions_batch(
         get_latest_versions_batch([
             {"package_name": "requests", "ecosystem": "python"},
             {"package_name": "react", "ecosystem": "javascript"},
-            {"package_name": "http", "ecosystem": "dart"}
+            {"package_name": "http", "ecosystem": "dart"},
+            {"package_name": "serde", "ecosystem": "rust"}
         ])
 
     """
@@ -162,7 +169,7 @@ async def get_latest_versions_batch(
 @mcp.tool()
 async def rate_package(
     package_name: str,
-    ecosystem: Literal["python", "javascript", "dart"],
+    ecosystem: Literal["python", "javascript", "dart", "rust"],
 ) -> dict[str, Any]:
     """
     Get a comprehensive quality rating for a package.
@@ -173,8 +180,8 @@ async def rate_package(
     - Quality metrics (documentation, license, tests)
 
     Args:
-        package_name: The name of the package (e.g., "requests", "react", "http")
-        ecosystem: The package ecosystem - one of: "python", "javascript", or "dart"
+        package_name: The name of the package (e.g., "requests", "react", "http", "serde")
+        ecosystem: The package ecosystem - one of: "python", "javascript", "dart", or "rust"
 
     Returns:
         Dictionary with comprehensive package rating including:
@@ -194,6 +201,7 @@ async def rate_package(
         rate_package("requests", "python")
         rate_package("react", "javascript")
         rate_package("http", "dart")
+        rate_package("serde", "rust")
 
     """
     rater = get_rater(ecosystem)
@@ -216,6 +224,7 @@ async def _fetch_registry_data(package_name: str, ecosystem: str) -> dict[str, A
         "python": f"https://pypi.org/pypi/{package_name}/json",
         "javascript": f"https://registry.npmjs.org/{package_name}",
         "dart": f"https://pub.dev/api/packages/{package_name}",
+        "rust": f"https://crates.io/api/v1/crates/{package_name}",
     }
 
     url = registry_urls.get(ecosystem)
@@ -224,7 +233,12 @@ async def _fetch_registry_data(package_name: str, ecosystem: str) -> dict[str, A
 
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=10.0)
+            # crates.io requires a User-Agent header
+            headers = {}
+            if ecosystem == "rust":
+                headers["User-Agent"] = "mcp-package-hero (https://github.com/moinsen-dev/mcp-package-hero)"
+
+            response = await client.get(url, headers=headers, timeout=10.0)
             if response.status_code == 404:
                 return None
             response.raise_for_status()
@@ -236,7 +250,7 @@ async def _fetch_registry_data(package_name: str, ecosystem: str) -> dict[str, A
 @mcp.tool()
 async def get_llms_txt(
     package_name: str,
-    ecosystem: Literal["python", "javascript", "dart"],
+    ecosystem: Literal["python", "javascript", "dart", "rust"],
     include_full: bool = False,
 ) -> dict[str, Any]:
     """
@@ -246,8 +260,8 @@ async def get_llms_txt(
     This tool fetches llms.txt files from package repositories, homepages, or documentation sites.
 
     Args:
-        package_name: The name of the package (e.g., "requests", "react", "http")
-        ecosystem: The package ecosystem - one of: "python", "javascript", or "dart"
+        package_name: The name of the package (e.g., "requests", "react", "http", "serde")
+        ecosystem: The package ecosystem - one of: "python", "javascript", "dart", or "rust"
         include_full: Whether to also fetch llms-full.txt (optional, default: False)
 
     Returns:
@@ -266,6 +280,7 @@ async def get_llms_txt(
         get_llms_txt("fasthtml", "python")
         get_llms_txt("react", "javascript", include_full=True)
         get_llms_txt("flutter_bloc", "dart")
+        get_llms_txt("tokio", "rust")
 
     """
     # Fetch registry data

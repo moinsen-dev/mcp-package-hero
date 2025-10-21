@@ -156,8 +156,6 @@ class GitHubClient:
                     open_count = len(response.json())
 
                 # Get merged PRs (last 30 days)
-                from datetime import timedelta
-                since_date = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
                 closed_url = f"{self.base_url}/repos/{owner}/{repo}/pulls"
                 params_closed: dict[str, str | int] = {"state": "closed", "per_page": 100}
 

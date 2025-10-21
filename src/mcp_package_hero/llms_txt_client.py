@@ -13,7 +13,6 @@ from .llms_txt_models import (
     LLMsTxtSource,
     LLMsTxtStatus,
 )
-from .models import Ecosystem
 
 
 class LLMsTxtClient:
