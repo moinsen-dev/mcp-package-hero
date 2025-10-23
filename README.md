@@ -8,7 +8,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-81%25-yellowgreen.svg)](https://github.com/moinsen-dev/mcp-package-hero)
 [![Type Check](https://img.shields.io/badge/mypy-passing-blue.svg)](https://github.com/moinsen-dev/mcp-package-hero)
 
-> A comprehensive Model Context Protocol (MCP) server for checking package versions and rating package quality across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev).
+> A comprehensive Model Context Protocol (MCP) server for checking package versions and rating package quality across Python (PyPI), JavaScript/TypeScript (npm), Dart (pub.dev), and Rust (crates.io).
 
 ## 🎯 Purpose
 
@@ -17,10 +17,11 @@ MCP Package Hero helps you make informed decisions about packages by providing:
 - **Quality Ratings**: Comprehensive quality analysis across multiple dimensions
 - **llms.txt Documentation**: Fetch and generate LLM-friendly documentation files
 
-Package Hero focuses on three major ecosystems:
+Package Hero focuses on four major ecosystems:
 - ✅ Python packages on PyPI
 - ✅ JavaScript/TypeScript packages on npm
 - ✅ Dart/Flutter packages on pub.dev
+- ✅ Rust packages on crates.io
 
 ## 🚀 Features
 
@@ -229,13 +230,14 @@ Check the latest version of a single package:
 "What's the latest version of requests in Python?"
 "Check the current version of react"
 "Show me the latest version of the http package for Dart"
+"What's the latest version of serde in Rust?"
 ```
 
 **Tool Name**: `get_latest_version`
 
 **Parameters**:
 - `package_name` (string): Name of the package
-- `ecosystem` (string): One of "python", "javascript", or "dart"
+- `ecosystem` (string): One of "python", "javascript", "dart", or "rust"
 
 **Example Response**:
 ```json
@@ -255,7 +257,7 @@ Check multiple packages at once (max 10):
 
 ```python
 # Example query:
-"Check the latest versions of requests (python), react (javascript), and http (dart)"
+"Check the latest versions of requests (python), react (javascript), http (dart), and serde (rust)"
 ```
 
 **Tool Name**: `get_latest_versions_batch`
@@ -294,13 +296,14 @@ Get comprehensive quality rating for a package:
 "Rate the quality of the requests package"
 "How good is the react package?"
 "Give me a quality assessment of flutter_bloc"
+"How does the serde crate rate?"
 ```
 
 **Tool Name**: `rate_package`
 
 **Parameters**:
 - `package_name` (string): Name of the package
-- `ecosystem` (string): One of "python", "javascript", or "dart"
+- `ecosystem` (string): One of "python", "javascript", "dart", or "rust"
 
 **Example Response**:
 ```json
@@ -355,13 +358,14 @@ Fetch llms.txt documentation file for a package:
 "Get the llms.txt file for fasthtml"
 "Show me the documentation structure for react"
 "Fetch llms.txt and llms-full.txt for flutter_bloc"
+"Get the llms.txt for tokio"
 ```
 
 **Tool Name**: `get_llms_txt`
 
 **Parameters**:
 - `package_name` (string): Name of the package
-- `ecosystem` (string): One of "python", "javascript", or "dart"
+- `ecosystem` (string): One of "python", "javascript", "dart", or "rust"
 - `include_full` (boolean, optional): Also fetch llms-full.txt (default: false)
 
 **Example Response**:
@@ -448,9 +452,9 @@ uv run pytest tests/test_registries/test_pypi.py
 ```
 
 ### Test Results
-- ✅ 62/62 tests passing
+- ✅ 68/68 tests passing
 - ✅ Comprehensive coverage for version checking, rating, and llms.txt features
-- ✅ All three ecosystems validated with live API calls
+- ✅ All four ecosystems validated with live API calls
 
 ## 🏗️ Development
 
@@ -540,8 +544,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] GitHub integration for repository metrics
 - [x] Integration with ecosystem-native scores (pub.dev, npms.io)
 
-### v1.3.0 (Planned)
-- [ ] Additional ecosystems (Rust, Go, Swift)
+### v1.3.0 ✅
+- [x] Rust ecosystem support (crates.io)
+- [x] Full integration with existing tools (version checking, quality rating, llms.txt)
+- [x] Comprehensive test coverage for Rust packages
+
+### v1.4.0 (Planned)
+- [ ] Additional ecosystems (Go, Swift)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries
 

@@ -104,11 +104,6 @@ class RatingCalculator:
             # Log scale: 10 stars = 40, 100 = 60, 1000 = 80, 10000+ = 100
             stars_score = min(100.0, 20 + math.log10(stars) * 30)
 
-        # Dependents score (not used in overall but tracked)
-        dependents_score = 0.0
-        if dependents:
-            dependents_score = min(100.0, math.log10(max(1, dependents)) * 30)
-
         # Overall popularity (downloads and stars weighted equally)
         if downloads is None and stars is None:
             overall = 0.0

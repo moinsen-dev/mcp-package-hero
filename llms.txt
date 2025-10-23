@@ -1,6 +1,6 @@
 # MCP Package Hero
 
-> A comprehensive Model Context Protocol (MCP) server for checking package versions, rating package quality, and managing llms.txt documentation across Python (PyPI), JavaScript/TypeScript (npm), and Dart (pub.dev) ecosystems
+> A comprehensive Model Context Protocol (MCP) server for checking package versions, rating package quality, and managing llms.txt documentation across Python (PyPI), JavaScript/TypeScript (npm), Dart (pub.dev), and Rust (crates.io) ecosystems
 
 MCP Package Hero is a production-ready MCP server that helps you make informed decisions about packages by providing version information, comprehensive quality ratings, and llms.txt documentation support. Built with FastMCP, fully type-safe with Pydantic V2, and extensively tested.
 
@@ -33,11 +33,11 @@ The server exposes 5 MCP tools:
 
 ## Key Features
 
-- **Multi-Ecosystem Support**: Python (PyPI), JavaScript/TypeScript (npm), Dart/Flutter (pub.dev)
+- **Multi-Ecosystem Support**: Python (PyPI), JavaScript/TypeScript (npm), Dart/Flutter (pub.dev), Rust (crates.io)
 - **Quality Rating System**: Multi-dimensional scoring across maintenance (35%), popularity (25%), and quality (40%)
 - **llms.txt Support**: Fetch and generate LLM-friendly documentation files following the llmstxt.org specification
 - **Type-Safe**: Full type hints, Pydantic validation, and mypy compliance
-- **Well-Tested**: 60 tests covering all features with comprehensive test coverage
+- **Well-Tested**: 68 tests covering all features with comprehensive test coverage
 - **Production-Ready**: Modern Python best practices, timezone-aware, async operations
 
 ## Installation

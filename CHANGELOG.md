@@ -479,10 +479,166 @@ No new dependencies added - uses existing httpx for all HTTP operations.
 
 ---
 
+---
+
+## [1.3.0] - 2025-10-21
+
+### 🎉 Major Feature Release: Rust Ecosystem Support
+
+This release adds comprehensive support for Rust packages from crates.io, expanding MCP Package Hero to four major package ecosystems.
+
+### ✨ Features
+
+#### New Ecosystem: Rust (crates.io)
+- **Full Rust Support**: Complete integration for Rust packages from crates.io
+  - Version checking via crates.io API v1
+  - Comprehensive quality rating with all scoring dimensions
+  - llms.txt documentation fetching from Rust package repositories
+  - GitHub metrics integration for Rust crates
+
+#### Ecosystem Coverage
+- ✅ **Python (PyPI)** - Established in v1.0.0
+- ✅ **JavaScript/TypeScript (npm)** - Established in v1.0.0
+- ✅ **Dart/Flutter (pub.dev)** - Established in v1.0.0
+- ✅ **Rust (crates.io)** - NEW in v1.3.0
+
+### 🏗️ New Components
+
+#### Registry Client
+- `registries/crates.py`: crates.io registry client
+  - API endpoint: `https://crates.io/api/v1/crates/{package_name}`
+  - Extracts version from `crate.max_version`
+  - Registry URL: `https://crates.io/crates/{package_name}`
+  - Includes required User-Agent header for crates.io API
+
+#### Rater Implementation
+- `raters/rust_rater.py`: Rust package quality rater
+  - Fetches data from crates.io API
+  - Extracts GitHub repository from package metadata
+  - Uses total downloads (not monthly) from crates.io
+  - Full scoring integration:
+    - Maintenance: Release frequency + GitHub metrics
+    - Popularity: Downloads + GitHub stars
+    - Quality: Documentation, license, tests, llms.txt
+
+### 🔧 Changed
+
+- **Updated `models.py`**:
+  - Added `RUST = "rust"` to `Ecosystem` enum
+
+- **Updated `server.py`**:
+  - Imported and initialized `CratesRegistry` and `RustPackageRater`
+  - Updated all tool signatures to include `"rust"` in Literal types
+  - Added Rust to `get_registry()` and `get_rater()` functions
+  - Added crates.io URL to `_fetch_registry_data()`
+  - Updated version to 1.3.0
+  - Updated instructions to include crates.io
+
+- **Updated `pyproject.toml`**:
+  - Version bumped to 1.3.0
+  - Updated description to include crates.io
+
+### 🧪 Testing
+
+#### New Test Suites
+- `tests/test_registries/test_crates.py`: crates.io registry tests
+  - Successful version retrieval (serde)
+  - Not found package handling
+  - Error handling and status validation
+
+- `tests/test_raters.py`: Added Rust package rating tests
+  - Popular package rating (serde, tokio)
+  - Not found package handling
+  - Maintenance score validation
+  - Cross-ecosystem comparison tests updated
+
+#### Test Results
+- **Total Tests**: 68 (up from 62)
+- **Status**: 68/68 passing ✅
+- **New Tests**: 6 Rust-specific tests
+- **Coverage**: Comprehensive coverage for all Rust features
+
+### 📚 Documentation
+
+- **README.md**:
+  - Updated ecosystem list to include Rust (crates.io)
+  - Added Rust examples to all 5 tool documentation sections
+  - Updated test count (68 tests)
+  - Updated roadmap: v1.3.0 marked as completed
+  - Updated ecosystem count (three → four)
+
+- **llms.txt**:
+  - Updated description to include Rust ecosystem
+
+- **CHANGELOG.md**: This comprehensive release documentation
+
+### 🎯 Design Decisions
+
+- **Follow Existing Patterns**: Rust implementation mirrors Python/JavaScript/Dart structure
+- **Total Downloads**: crates.io provides total downloads (not monthly like PyPI/npm)
+- **User-Agent Required**: crates.io API requires User-Agent header
+- **Same Scoring Weights**: Maintenance (35%), Popularity (25%), Quality (40%)
+- **Graceful Degradation**: Missing GitHub repos don't crash rating
+
+### 📊 Example Packages
+
+Popular Rust packages tested:
+- **serde**: ~500M downloads, excellent quality (serialization framework)
+- **tokio**: Popular async runtime, active maintenance
+- **clap**: CLI framework, well-documented
+- **rand**: Random number generation library
+
+### 🌐 crates.io API Integration
+
+**API Endpoint**: `https://crates.io/api/v1/crates/{name}`
+
+**Response Structure**:
+```json
+{
+  "crate": {
+    "id": "serde",
+    "name": "serde",
+    "description": "...",
+    "max_version": "1.0.152",
+    "downloads": 500000000,
+    "repository": "https://github.com/serde-rs/serde",
+    "documentation": "https://docs.rs/serde",
+    "license": "MIT OR Apache-2.0"
+  },
+  "versions": [...]
+}
+```
+
+**Key Fields Used**:
+- `crate.max_version` - Latest version
+- `crate.downloads` - Total downloads
+- `crate.repository` - GitHub URL
+- `crate.description` - Package description
+- `versions[0].license` - License info
+- `versions[0].created_at` - Release date
+
+### 📝 Known Limitations
+
+- crates.io provides total downloads, not monthly (different scale than PyPI/npm)
+- User-Agent header required for all crates.io requests
+- No native quality score (unlike pub.dev pub points or npms.io)
+- Test detection is heuristic-based
+
+### 🔗 Related Changes
+
+All five MCP tools now support Rust:
+1. ✅ `get_latest_version` - Rust version checking
+2. ✅ `get_latest_versions_batch` - Batch support includes Rust
+3. ✅ `rate_package` - Full quality rating for Rust crates
+4. ✅ `get_llms_txt` - Fetch llms.txt from Rust packages
+5. ✅ `create_llms_txt` - Generate llms.txt (language-agnostic)
+
+---
+
 ## [Unreleased]
 
-### Planned for v1.3
-- [ ] Additional ecosystems: Rust (crates.io), Go (pkg.go.dev), Swift (SwiftPM)
+### Planned for v1.4
+- [ ] Additional ecosystems: Go (pkg.go.dev), Swift (SwiftPM)
 - [ ] Cache layer for improved performance
 - [ ] Support for specific version queries (not just latest)
 - [ ] GitHub token configuration for higher rate limits

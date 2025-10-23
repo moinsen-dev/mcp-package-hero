@@ -12,6 +12,7 @@ class Ecosystem(str, Enum):
     PYTHON = "python"
     JAVASCRIPT = "javascript"
     DART = "dart"
+    RUST = "rust"
 
 
 class VersionStatus(str, Enum):
