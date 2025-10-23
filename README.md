@@ -1,5 +1,6 @@
 # 🦸 MCP Package Hero
 
+[![PyPI](https://img.shields.io/pypi/v/mcp-package-hero.svg)](https://pypi.org/project/mcp-package-hero/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.12-green.svg)](https://github.com/jlowin/fastmcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -53,7 +54,21 @@ Package Hero focuses on three major ecosystems:
 
 ## 📦 Installation
 
-### Using uv (Recommended)
+### From PyPI (Recommended)
+
+The fastest and easiest way to use MCP Package Hero is directly from PyPI:
+
+```bash
+# No installation needed! Just use uvx to run it directly
+uvx mcp-package-hero
+
+# Or install it as a tool for repeated use
+uv tool install mcp-package-hero
+```
+
+### From Source (Development)
+
+For development or contributing:
 
 ```bash
 # Install uv if you haven't already
@@ -66,16 +81,8 @@ cd mcp-package-hero
 # Install dependencies
 uv sync
 
-# Install the package
+# Install the package in editable mode
 uv pip install -e .
-```
-
-### Using pip
-
-```bash
-git clone https://github.com/moinsen-dev/mcp-package-hero.git
-cd mcp-package-hero
-pip install -e .
 ```
 
 ## 🔧 Configuration
@@ -84,10 +91,25 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cline, etc.):
 
 ### Claude Desktop
 
-#### Option 1: Run directly from GitHub (Recommended)
+#### Option 1: From PyPI (Recommended - Fast!)
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or
 `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "package-hero": {
+      "command": "uvx",
+      "args": ["mcp-package-hero"]
+    }
+  }
+}
+```
+
+**Startup time**: ~1-2 seconds (first run), ~0.5 seconds (cached) ⚡
+
+#### Option 2: From GitHub (Slower)
 
 ```json
 {
@@ -104,7 +126,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 }
 ```
 
-#### Option 2: Run from local directory
+#### Option 3: From local directory (Development)
 
 ```json
 {
@@ -126,7 +148,20 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 
 Edit `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`:
 
-#### Option 1: Run directly from GitHub (Recommended)
+#### Option 1: From PyPI (Recommended - Fast!)
+
+```json
+{
+  "mcpServers": {
+    "package-hero": {
+      "command": "uvx",
+      "args": ["mcp-package-hero"]
+    }
+  }
+}
+```
+
+#### Option 2: From GitHub (Slower)
 
 ```json
 {
@@ -143,7 +178,7 @@ Edit `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-d
 }
 ```
 
-#### Option 2: Run from local directory
+#### Option 3: From local directory (Development)
 
 ```json
 {
@@ -165,13 +200,19 @@ Edit `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-d
 
 Add the server globally to Claude Code using the CLI:
 
-#### Option 1: Run directly from GitHub (Recommended)
+#### Option 1: From PyPI (Recommended - Fast!)
+
+```bash
+claude mcp add-json package-hero '{"type":"stdio","command":"uvx","args":["mcp-package-hero"]}'
+```
+
+#### Option 2: From GitHub (Slower)
 
 ```bash
 claude mcp add-json package-hero '{"type":"stdio","command":"uvx","args":["--from","git+https://github.com/moinsen-dev/mcp-package-hero.git","mcp-package-hero"]}'
 ```
 
-#### Option 2: Run from local directory
+#### Option 3: From local directory (Development)
 
 ```bash
 claude mcp add-json package-hero '{"type":"stdio","command":"uv","args":["run","--directory","/path/to/mcp-package-hero","mcp-package-hero"]}'
